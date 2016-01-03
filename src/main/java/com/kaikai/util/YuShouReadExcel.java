@@ -47,7 +47,7 @@ public class YuShouReadExcel {
             row = sheet.getRow(i);
 //            System.out.println(row.getCell(15) + "\t" + row.getCell(18));
             String idTemp = row.getCell(15).toString().trim();
-            double countTemp = Double.parseDouble(row.getCell(19).toString().trim());
+            double countTemp = Double.parseDouble(row.getCell(18).toString().trim());
             if("".equals(idTemp)) {
                 idTemp = "外币评估调整";
             }
@@ -207,7 +207,7 @@ public class YuShouReadExcel {
 
         try
         {
-            FileOutputStream fout = new FileOutputStream("E:/kaikai/yushou/预收123.xls");
+            FileOutputStream fout = new FileOutputStream("E:/kaikai/yushou/预收.xls");
             wb.write(fout);
             fout.close();
         }

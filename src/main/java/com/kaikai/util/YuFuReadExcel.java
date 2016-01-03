@@ -1,7 +1,6 @@
 package com.kaikai.util;
 
 import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.util.SystemOutLogger;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -11,26 +10,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Created by Ricky on 2016/1/2.
+ * Created by Ricky on 2015/12/27.
  */
-public class TaShouReadExcel {
+public class YuFuReadExcel {
 
-
-    //    public final static String EXCEL_PATH = "F:\\todo.xlsx";
-    public final static String EXCEL_YING_SHOU_PATH = "E:\\kaikai\\tashou\\tashou.xlsx";
-    public final static String EXCEL_ALL_COMPANY_PATH = "E:\\kaikai\\tashou\\allcompany.xlsx";
-    public final static String EXCEL_CHONG_FEN_LEI_PATH = "E:\\kaikai\\tashou\\chongfenlei.xlsx";
-    public final static String EXCEL_QI_CHU_PATH = "E:\\kaikai\\tashou\\qichu.xlsx";
-    public final static String EXCEL_ZHANG_LIN_PATH = "E:\\kaikai\\tashou\\zhanglin.xlsx";
-    public final static String PATTER_WEN_BEN = "^([0-9]{8}).*$";
+//    public final static String EXCEL_PATH = "F:\\todo.xlsx";
+    public final static String EXCEL_YING_SHOU_PATH = "E:\\kaikai\\yufu\\yufu.xlsx";
+    public final static String EXCEL_ALL_COMPANY_PATH = "E:\\kaikai\\yufu\\allcompany.xlsx";
+    public final static String EXCEL_CHONG_FEN_LEI_PATH = "E:\\kaikai\\yufu\\chongfenlei.xlsx";
+    public final static String EXCEL_QI_CHU_PATH = "E:\\kaikai\\yufu\\qichu.xlsx";
+    public final static String EXCEL_ZHANG_LIN_PATH = "E:\\kaikai\\yufu\\zhanglin.xlsx";
+    public final static String OUTPUT_FILE_PERFIX = "F:";
     public static Map<String, Double> positiveNumMap = new HashMap<String, Double>();
     public static Map<String, Double> negativeNumMap = new HashMap<String, Double>();
     public static Map<String, String> companyIdNameMap = new HashMap<String, String>();
     public static Map<String, Double> chongFenLeiMap = new HashMap<String, Double>();
+    public static Map<String, Double> zhangMianMap = new HashMap<String, Double>();
     public static Map<String, Double> qiChuMap = new HashMap<String, Double>();
     public static Map<String, List<Double>> zhangLinMap = new HashMap<String, List<Double>>();
     public static List<String> allCompanies = new ArrayList<String>();
@@ -39,7 +36,7 @@ public class TaShouReadExcel {
     public static Map<String, Double> negativeNumProcessedMap = new HashMap<String, Double>();
 
 
-    public static void parseExcelTaShou() {
+    public static void parseExcelYinShou() {
 
         XSSFWorkbook xwb = parseExcel(EXCEL_YING_SHOU_PATH);
 
@@ -50,32 +47,11 @@ public class TaShouReadExcel {
         for(int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
             row = sheet.getRow(i);
 //            System.out.println(row.getCell(15) + "\t" + row.getCell(18));
-
-
-            String wenBen = row.getCell(9).toString().trim();
-            String gongYinId = row.getCell(14).toString().trim();
-            String keHuId = row.getCell(15).toString().trim();
-
-            String idTemp = "";
-
+            String idTemp = row.getCell(14).toString().trim();
             double countTemp = Double.parseDouble(row.getCell(18).toString().trim());
-
-            //process id
-            if(!"".equals(keHuId)) {
-                idTemp = keHuId;
-            } else if (!"".equals(gongYinId)) {
-                idTemp = gongYinId + "_gy";
-            } else {
-                Pattern pattern = Pattern.compile(PATTER_WEN_BEN);
-                Matcher matcher = pattern.matcher(wenBen);
-                if(matcher.find()) {
-//                    System.out.println(wenBen);
-                    idTemp = "外币评估调整";
-                } else {
-                    idTemp = wenBen + "_wb";
-                }
+            if("".equals(idTemp)) {
+                idTemp = "外币评估调整";
             }
-
             if(countTemp > 0) {
                 if(positiveNumMap.get(idTemp) != null) {
                     positiveNumMap.put(idTemp, positiveNumMap.get(idTemp) + countTemp);
@@ -115,7 +91,7 @@ public class TaShouReadExcel {
         for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
             row = sheet.getRow(i);
             String idTemp = row.getCell(0).toString().trim();
-            String countTemp = row.getCell(1).toString().trim();
+            String countTemp = row.getCell(1) == null ? "0" : row.getCell(1).toString().trim();
             if(countTemp.equals("0") || countTemp.equals("")) {
                 chongFenLeiMap.put(idTemp, 0d);
             } else {
@@ -133,11 +109,20 @@ public class TaShouReadExcel {
 //            System.out.println(i);
 //            System.out.println(row.getCell(0) + "\t" + row.getCell(1));
             String idTemp = row.getCell(0).toString().trim();
-            String countTemp = row.getCell(1) == null ? "" : row.getCell(1).toString().trim();
-            if(countTemp.equals("0") || countTemp.equals("")) {
+
+
+            String countTempZ = row.getCell(1) == null ? "" : row.getCell(1).toString().trim();
+            String countTempQ = row.getCell(2) == null ? "" : row.getCell(1).toString().trim();
+            if(countTempZ.equals("0") || countTempZ.equals("")) {
+                zhangMianMap.put(idTemp, 0d);
+            } else {
+                zhangMianMap.put(idTemp, Double.parseDouble(countTempZ));
+            }
+
+            if(countTempQ.equals("0") || countTempQ.equals("")) {
                 qiChuMap.put(idTemp, 0d);
             } else {
-                qiChuMap.put(idTemp, Double.parseDouble(countTemp));
+                qiChuMap.put(idTemp, Double.parseDouble(countTempQ));
             }
         }
     }
@@ -177,45 +162,6 @@ public class TaShouReadExcel {
 
     }
 
-    public static void listAllCompanies() {
-        //转换id为公司名字
-        Set<String> pIds = positiveNumMap.keySet();
-        for(String s : pIds) {
-            if(companyIdNameMap.get(s) != null) {
-                positiveNumProcessedMap.put(companyIdNameMap.get(s), positiveNumMap.get(s));
-            } else {
-                positiveNumProcessedMap.put(s, positiveNumMap.get(s));
-            }
-        }
-        Set<String> nIds = negativeNumMap.keySet();
-        for(String s : nIds) {
-            if(companyIdNameMap.get(s) != null) {
-                negativeNumProcessedMap.put(companyIdNameMap.get(s), negativeNumMap.get(s));
-            } else {
-                negativeNumProcessedMap.put(s, negativeNumMap.get(s));
-            }
-        }
-
-        //列出所有公司
-        pIds = positiveNumProcessedMap.keySet();
-        for(String s : pIds) {
-            if(!allCompanies.contains(s))
-                allCompanies.add(s);
-        }
-        nIds = negativeNumProcessedMap.keySet();
-        for(String s : nIds) {
-            if(!allCompanies.contains(s))
-                allCompanies.add(s);
-        }
-        Set<String> qIds = qiChuMap.keySet();
-        for(String s : qIds) {
-            if(!allCompanies.contains(s))
-                allCompanies.add(s);
-        }
-
-        System.out.println(allCompanies.size());
-    }
-
     public static void exportExcel() {
 
         // 第一步，创建一个webbook，对应一个Excel文件
@@ -229,33 +175,48 @@ public class TaShouReadExcel {
         style.setAlignment(HSSFCellStyle.ALIGN_CENTER); // 创建一个居中格式
 
         HSSFCell cell = row.createCell(0);
-        cell.setCellValue("其他应收对象名称");
+        cell.setCellValue("供应商名称");
         cell.setCellStyle(style);
         cell = row.createCell(1);
-        cell.setCellValue("期初余额");
+        cell.setCellValue("2014.12账面");
         cell.setCellStyle(style);
         cell = row.createCell(2);
-        cell.setCellValue("本期增加");
+        cell.setCellValue("期初余额（审计后)");
         cell.setCellStyle(style);
         cell = row.createCell(3);
-        cell.setCellValue("本期减少");
+        cell.setCellValue("审计调整");
         cell.setCellStyle(style);
         cell = row.createCell(4);
-        cell.setCellValue("期末余额");
+        cell.setCellValue("本期增加");
         cell.setCellStyle(style);
         cell = row.createCell(5);
-        cell.setCellValue("1年内");
+        cell.setCellValue("调整后增加");
         cell.setCellStyle(style);
         cell = row.createCell(6);
-        cell.setCellValue("1-2年");
+        cell.setCellValue("本期减少");
         cell.setCellStyle(style);
         cell = row.createCell(7);
-        cell.setCellValue("2-3年");
+        cell.setCellValue("重分类");
         cell.setCellStyle(style);
         cell = row.createCell(8);
-        cell.setCellValue("3年以上");
+        cell.setCellValue("调整后减少");
         cell.setCellStyle(style);
         cell = row.createCell(9);
+        cell.setCellValue("期末余额（调整后）");
+        cell.setCellStyle(style);
+        cell = row.createCell(10);
+        cell.setCellValue("1年内");
+        cell.setCellStyle(style);
+        cell = row.createCell(11);
+        cell.setCellValue("1-2年");
+        cell.setCellStyle(style);
+        cell = row.createCell(12);
+        cell.setCellValue("2-3年");
+        cell.setCellStyle(style);
+        cell = row.createCell(13);
+        cell.setCellValue("3年以上");
+        cell.setCellStyle(style);
+        cell = row.createCell(14);
         cell.setCellValue("核对");
         cell.setCellStyle(style);
 
@@ -263,9 +224,14 @@ public class TaShouReadExcel {
         for(int i = 0; i < allCompanies.size(); i++ ) {
             String companyName = allCompanies.get(i);
             double qiChuYuE = qiChuMap.get(companyName) == null ? 0 : qiChuMap.get(companyName);
+            double zhangMian = zhangMianMap.get(companyName) == null ? 0 : zhangMianMap.get(companyName);
+            double shengJiTiaozheng = zhangMian - qiChuYuE;
             double zengJia = positiveNumProcessedMap.get(companyName) == null ? 0 : positiveNumProcessedMap.get(companyName);
+            double tiaoZhengHouZengJia = shengJiTiaozheng + zengJia;
             double jianShao = negativeNumProcessedMap.get(companyName) == null ? 0 : negativeNumProcessedMap.get(companyName) * -1;
-//            double chongFenLei = chongFenLeiMap.get(companyName) == null ? 0 : chongFenLeiMap.get(companyName);
+            double chongFenLei = chongFenLeiMap.get(companyName) == null ? 0 : chongFenLeiMap.get(companyName);
+            double tiaoZhengHouJianShao = jianShao + chongFenLei;
+            double qiMouYuE = qiChuYuE + tiaoZhengHouZengJia - tiaoZhengHouJianShao;
             List<Double> zhanglinTemp = zhangLinMap.get(companyName);
             double zhanglin1,zhanglin2,zhanglin3,zhanglin4;
             if (zhanglinTemp == null) {
@@ -277,27 +243,30 @@ public class TaShouReadExcel {
                 zhanglin4 = zhanglinTemp.get(3);
             }
 //            double tiaoZhengHouJianShao = jianShao + chongFenLei;
-            double qiMouYuE = qiChuYuE + zengJia - jianShao;
+//            double qiMouYuE = qiChuYuE + zengJia - tiaoZhengHouJianShao;
             double heDui = qiMouYuE - (zhanglin1 + zhanglin2 + zhanglin3 + zhanglin4);
 
             row = sheet.createRow(i + 1);
             row.createCell(0).setCellValue(companyName);
-            row.createCell(1).setCellValue(qiChuYuE);
-            row.createCell(2).setCellValue(zengJia);
-            row.createCell(3).setCellValue(jianShao);
-//            row.createCell(4).setCellValue(chongFenLei);
-//            row.createCell(5).setCellValue(tiaoZhengHouJianShao);
-            row.createCell(4).setCellValue(qiMouYuE);
-            row.createCell(5).setCellValue(zhanglin1);
-            row.createCell(6).setCellValue(zhanglin2);
-            row.createCell(7).setCellValue(zhanglin3);
-            row.createCell(8).setCellValue(zhanglin4);
-            row.createCell(9).setCellValue(heDui);
+            row.createCell(1).setCellValue(zhangMian);
+            row.createCell(2).setCellValue(qiChuYuE);
+            row.createCell(3).setCellValue(shengJiTiaozheng);
+            row.createCell(4).setCellValue(zengJia);
+            row.createCell(5).setCellValue(tiaoZhengHouZengJia);
+            row.createCell(6).setCellValue(jianShao);
+            row.createCell(7).setCellValue(chongFenLei);
+            row.createCell(8).setCellValue(tiaoZhengHouJianShao);
+            row.createCell(9).setCellValue(qiMouYuE);
+            row.createCell(10).setCellValue(zhanglin1);
+            row.createCell(11).setCellValue(zhanglin2);
+            row.createCell(12).setCellValue(zhanglin3);
+            row.createCell(13).setCellValue(zhanglin4);
+            row.createCell(14).setCellValue(heDui);
         }
 
         try
         {
-            FileOutputStream fout = new FileOutputStream("E:/kaikai/tashou/他收.xls");
+            FileOutputStream fout = new FileOutputStream("E:/kaikai/yufu/预付.xls");
             wb.write(fout);
             fout.close();
         }
@@ -354,27 +323,65 @@ public class TaShouReadExcel {
     }
 
 
-    public static void testpatten() {
-        Pattern pattern = Pattern.compile("^([0-9]{8}).*$");
-        Matcher matcher = pattern.matcher("调整凭证100000831 保定保北已建档正常入账");
-        if(matcher.find()) {
-            System.out.println("find");
-        } else {
-            System.out.println("not find");
+    public static void listAllCompanies() {
+        //转换id为公司名字
+        Set<String> pIds = positiveNumMap.keySet();
+        for(String s : pIds) {
+            if(companyIdNameMap.get(s) != null) {
+                positiveNumProcessedMap.put(companyIdNameMap.get(s), positiveNumMap.get(s));
+            } else {
+                positiveNumProcessedMap.put(s, positiveNumMap.get(s));
+            }
         }
+        Set<String> nIds = negativeNumMap.keySet();
+        for(String s : nIds) {
+            if(companyIdNameMap.get(s) != null) {
+                negativeNumProcessedMap.put(companyIdNameMap.get(s), negativeNumMap.get(s));
+            } else {
+                negativeNumProcessedMap.put(s, negativeNumMap.get(s));
+            }
+        }
+
+        //列出所有公司
+        pIds = positiveNumProcessedMap.keySet();
+        for(String s : pIds) {
+            if(!allCompanies.contains(s))
+                allCompanies.add(s);
+        }
+        nIds = negativeNumProcessedMap.keySet();
+        for(String s : nIds) {
+            if(!allCompanies.contains(s))
+                allCompanies.add(s);
+        }
+        Set<String> qIds = qiChuMap.keySet();
+        for(String s : qIds) {
+            if(!allCompanies.contains(s))
+                allCompanies.add(s);
+        }
+
+        System.out.println(allCompanies.size());
     }
 
+
     public static void main(String [] args) {
-//        testpatten();
-        parseExcelTaShou();
+        parseExcelYinShou();
         parseExcelAllCompany();
+        parseExcelChongFenLei();
         parseExcelQiChu();
         parseExcelZhangLin();
 
-        //转换id为公司名字
-        listAllCompanies();
-        exportExcel();
+//        System.out.println(positiveNumMap);
+//        System.out.println(negativeNumMap);
+//        System.out.println(companyIdNameMap);
+//        System.out.println(qiChuMap);
+//        System.out.println(zhangLinMap);
 
+        //转换id为公司名字
+       listAllCompanies();
+
+        exportExcel();
+//        exportExcelTest();
 
     }
+
 }
