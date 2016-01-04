@@ -112,7 +112,7 @@ public class YuFuReadExcel {
 
 
             String countTempZ = row.getCell(1) == null ? "" : row.getCell(1).toString().trim();
-            String countTempQ = row.getCell(2) == null ? "" : row.getCell(1).toString().trim();
+            String countTempQ = row.getCell(2) == null ? "" : row.getCell(2).toString().trim();
             if(countTempZ.equals("0") || countTempZ.equals("")) {
                 zhangMianMap.put(idTemp, 0d);
             } else {

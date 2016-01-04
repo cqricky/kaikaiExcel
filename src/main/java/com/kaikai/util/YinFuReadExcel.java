@@ -112,7 +112,7 @@ public class YinFuReadExcel {
 
 
             String countTempZ = row.getCell(1) == null ? "" : row.getCell(1).toString().trim();
-            String countTempQ = row.getCell(2) == null ? "" : row.getCell(1).toString().trim();
+            String countTempQ = row.getCell(2) == null ? "" : row.getCell(2).toString().trim();
             if(countTempZ.equals("0") || countTempZ.equals("")) {
                 yuanShiMap.put(idTemp, 0d);
             } else {
@@ -205,7 +205,7 @@ public class YinFuReadExcel {
             double yuanShi = yuanShiMap.get(companyName) == null ? 0 : yuanShiMap.get(companyName);
             double shengJiHou = shengJiHouMap.get(companyName) == null ? 0 : shengJiHouMap.get(companyName);
             double shengJiTiaozheng = yuanShi - shengJiHou;
-            double zengJia = positiveNumProcessedMap.get(companyName) == null ? 0 : positiveNumProcessedMap.get(companyName);
+            double zengJia = positiveNumProcessedMap.get(companyName) == null ? 0 : positiveNumProcessedMap.get(companyName) * -1;
             double tiaoZhengHouZengJia = shengJiTiaozheng + zengJia;
             double jianShao = negativeNumProcessedMap.get(companyName) == null ? 0 : negativeNumProcessedMap.get(companyName) * -1;
             double chongFenLei = chongFenLeiMap.get(companyName) == null ? 0 : chongFenLeiMap.get(companyName);
